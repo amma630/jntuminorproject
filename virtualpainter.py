@@ -29,7 +29,7 @@ if len(overlaylist) == 0:
     exit()
 
 header = overlaylist[0]  # Set the first image as the header
-drawColor = (0, 0, 255)  # Default color set to red
+drawColor = (255, 0, 255)  # Default color set to red
 
 # Initialize webcam
 cap = cv2.VideoCapture(0)  # Change index if needed for different camera
@@ -41,6 +41,10 @@ imgCanvas = np.zeros((720, 1280, 3), np.uint8)
 
 # Smoothing factor for better drawing
 smoothening = 5
+
+# Stack for undo and redo functionality
+undoStack = []
+redoStack = []
 
 while True:
     success, img = cap.read()
@@ -66,22 +70,38 @@ while True:
             
             # Check if hand is within the header area
             if y1 < 125:
-                if 250 < x1 < 450:  # Yellow
-                    header = overlaylist[0]  # Load yellow
-                    drawColor = (0, 0, 255)
-                    print("Selected Yellow")
-                elif 550 < x1 < 750:  # Red
-                    header = overlaylist[1]  # Load red
+                if 210 < x1 < 262:  # Violet
+                    header = overlaylist[0]
+                    drawColor = (255, 0, 255)
+                    print("Selected Violet")
+                elif 372 < x1 < 428:  # Yellow
+                    header = overlaylist[1]
                     drawColor = (0, 255, 255)
-                    print("Selected Red")
-                elif 800 < x1 < 950:  # Green
+                    print("Selected Yellow")
+                elif 550 < x1 < 604: # Blue
                     header = overlaylist[2]
-                    drawColor = (0, 255, 0)
-                    print("Selected Green")
-                elif 1050 < x1 < 1200:  # Eraser (Black)
+                    drawColor = (255, 0, 0)
+                    print("Selected Blue")
+                elif 753< x1 < 845:  # Eraser (Black)
                     header = overlaylist[3]
                     drawColor = (0, 0, 0)
                     print("Selected Eraser")
+                elif 931 < x1 < 988:  # Undo
+                    header = overlaylist[4]  # Set to the Undo icon in the overlay list
+                    if len(undoStack) > 0:
+                        redoStack.append(imgCanvas.copy())  # Save current state for redo
+                        imgCanvas = undoStack.pop()  # Pop the last state for undo
+                        print("Undo Action")
+                elif 1035 < x1 < 1098:  # Redo
+                    header = overlaylist[5]  # Set to the Undo icon in the overlay list
+                    if len(redoStack) > 0:
+                        undoStack.append(imgCanvas.copy())  # Save current state for undo
+                        imgCanvas = redoStack.pop()  # Pop the redo state
+                        print("Redo Action")
+                elif 1167 < x1 < 1232:  # Clear Screen
+                    header = overlaylist[6]  # Set to the Undo icon in the overlay list
+                    imgCanvas = np.zeros((720, 1280, 3), np.uint8)  # Clear the canvas
+                    print("Clear Screen Action")
                     
             cv2.rectangle(img, (x1, y1 - 25), (x2, y2 + 25), drawColor, cv2.FILLED)
 
@@ -97,6 +117,10 @@ while True:
             # Apply smoothing effect
             x1 = int(xp + (x1 - xp) / smoothening)
             y1 = int(yp + (y1 - yp) / smoothening)
+
+            # Save the current state for undo before drawing
+            undoStack.append(imgCanvas.copy())
+            redoStack.clear()  # Clear redo stack after a new drawing action
 
             # Erase if the color is black
             if drawColor == (0, 0, 0):
