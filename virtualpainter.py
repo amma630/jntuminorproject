@@ -80,7 +80,7 @@ while True:
                     print("Selected Yellow")
                 elif 550 < x1 < 604: # Blue
                     header = overlaylist[2]
-                    drawColor = (255, 0, 0)
+                    drawColor = (255, 100, 1)
                     print("Selected Blue")
                 elif 753< x1 < 845:  # Eraser (Black)
                     header = overlaylist[3]
